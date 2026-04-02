@@ -269,14 +269,30 @@ td{padding:7px 4px;text-align:center;color:#1a2a3a;vertical-align:middle;}
       <div id="agentContent"></div>
     </div>
 
-  </div>
-
-  <!-- BOTTOM NAV -->
+    <!-- SCREEN: Partner -->
+    <div class="screen" id="screen-partner">
+      <!-- lock overlay -->
+      <div id="partnerLock" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;gap:16px;">
+        <div style="font-size:48px;">🔒</div>
+        <div style="font-size:16px;font-weight:900;color:#1C3A5F;">Partner Only</div>
+        <div style="font-size:12px;color:#888;margin-top:-8px;">กรุณากรอกรหัสผ่าน</div>
+        <input id="partnerPwd" type="password" placeholder="รหัสผ่าน"
+          style="width:100%;max-width:260px;background:#f5f2ec;border:1.5px solid #d8cdb8;border-radius:10px;padding:12px 16px;font-size:16px;text-align:center;font-family:'Sarabun',sans-serif;">
+        <button onclick="checkPartnerPwd()"
+          style="width:100%;max-width:260px;background:#1C3A5F;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;padding:13px;font-family:'Sarabun',sans-serif;cursor:pointer;">
+          เข้าสู่ระบบ
+        </button>
+        <div id="partnerPwdErr" style="color:#c0392b;font-size:12px;display:none;">รหัสผ่านไม่ถูกต้อง</div>
+      </div>
+      <!-- content (hidden until unlocked) -->
+      <div id="partnerContent" style="display:none;"></div>
+    </div>
   <div class="bottom-nav">
     <div class="nav-item active" data-screen="thai"><div class="nav-icon">🇹🇭</div><div class="nav-lbl">หวยไทย</div></div>
     <div class="nav-item" data-screen="lao"><div class="nav-icon">🇱🇦</div><div class="nav-lbl">หวยลาว</div></div>
     <div class="nav-item" data-screen="poy"><div class="nav-icon">📋</div><div class="nav-lbl">โพยหวย</div></div>
     <div class="nav-item" data-screen="agent"><div class="nav-icon">👤</div><div class="nav-lbl">นายหน้า</div></div>
+    <div class="nav-item" data-screen="partner"><div class="nav-icon">🤝</div><div class="nav-lbl">Partner</div></div>
   </div>
 </div>
 
@@ -658,8 +674,9 @@ document.querySelectorAll('.nav-item').forEach(item=>{
     const titles={thai:'หวยไทย',lao:'หวยลาว',poy:'โพยหวย',agent:'นายหน้า'};
     document.getElementById('headerTitle').textContent = titles[s];
     document.getElementById('backBtn').classList.add('hidden');
-    if(s==='poy')   renderPoyHistory();
-    if(s==='agent') renderAgentTab();
+    if(s==='poy')     renderPoyHistory();
+    if(s==='agent')   renderAgentTab();
+    if(s==='partner') showPartnerLock();
     document.getElementById('mainBody').scrollTop=0;
   });
 });
