@@ -671,31 +671,70 @@ function renderPoyHistory(){
     c.innerHTML='<div class="coming-soon"><div class="coming-icon">📋</div><div class="coming-txt">โพยหวย</div><div class="coming-sub">ยังไม่มีโพย — ส่งโพยก่อน</div></div>';
     return;
   }
+
+  // group by customer
+  const customerMap = {};
+  poyHistory.forEach(poy=>{
+    const k = poy.customer||'ไม่ระบุ';
+    if(!customerMap[k]) customerMap[k] = {customer:k, poys:[], total:0};
+    customerMap[k].poys.push(poy);
+    customerMap[k].total += poy.total;
+  });
+
   let html='';
-  poyHistory.forEach((poy,pi)=>{
-    const rows = poy.items.map((e,ei)=>`
-      <div class="poy-row" style="align-items:center;">
-        <span style="font-family:monospace;font-weight:900;color:#1C3A5F;min-width:48px;">${e.number}</span>
-        <span style="font-size:11px;color:#4a6080;flex:1;">${e.label}</span>
-        <span style="font-weight:700;min-width:48px;text-align:right;">฿${fmt(e.amount)}</span>
-        <button onclick="deleteItem('${poy.id}',${ei})" style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:16px;color:#c0392b;margin-left:6px;">🗑️</button>
-      </div>`).join('');
+  Object.values(customerMap).forEach(cu=>{
+    // sort poys newest first
+    const sorted = cu.poys.sort((a,b)=>b.id-a.id);
+    const totalItems = sorted.reduce((s,p)=>s+p.items.length,0);
+
     html+=`
     <div class="poy-card">
-      <div class="poy-header">
-        <span style="color:#fff;font-weight:900;font-size:14px;">โพย #${poyHistory.length-pi} · ${poy.customer}</span>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="color:#C8B289;font-size:11px;">${poy.date} ${poy.time}</span>
-          <button onclick="deletePoy('${poy.id}')" style="background:#c0392b;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;padding:3px 8px;cursor:pointer;">🗑️ ลบโพย</button>
+      <!-- customer header -->
+      <div class="poy-header" style="flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+          <span style="color:#fff;font-weight:900;font-size:15px;">🧑 ${cu.customer}</span>
+          <span style="color:#C8B289;font-size:12px;font-weight:700;">${sorted.length} โพย · ${totalItems} รายการ</span>
         </div>
-      </div>
-      ${rows}
-      <div class="poy-footer">
-        <span>${poy.items.length} รายการ</span>
-        <span>ยอดรวม <b style="color:#1C3A5F;">฿${fmt(poy.total)}</b></span>
-      </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+          <span style="color:#e0d0b0;font-size:12px;">ยอดรวม <b style="color:#fff;">฿${fmt(cu.total)}</b></span>
+        </div>
+      </div>`;
+
+    sorted.forEach((poy, pi)=>{
+      html+=`
+      <!-- poy sub-header -->
+      <div style="background:#f0ede6;padding:7px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #d8cdb8;">
+        <span style="font-size:12px;font-weight:700;color:#1C3A5F;">โพย #${sorted.length-pi} &nbsp;<span style="font-size:10px;color:#888;font-weight:400;">${poy.date} ${poy.time}</span></span>
+        <button onclick="deletePoy('${poy.id}')" style="background:#c0392b;border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;">🗑️ ลบ</button>
+      </div>`;
+
+      poy.items.forEach((e,ei)=>{
+        html+=`
+        <div class="poy-row" style="align-items:center;">
+          <span style="font-family:monospace;font-weight:900;color:#1C3A5F;min-width:48px;">${e.number}</span>
+          <span style="font-size:11px;color:#4a6080;flex:1;">${e.label}</span>
+          <span style="font-weight:700;min-width:48px;text-align:right;">฿${fmt(e.amount)}</span>
+          <button onclick="deleteItem('${poy.id}',${ei})" style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:16px;color:#c0392b;margin-left:4px;">🗑️</button>
+        </div>`;
+      });
+
+      // poy subtotal
+      html+=`
+      <div style="padding:6px 14px;display:flex;justify-content:space-between;background:#fafaf8;border-top:1px dashed #d8cdb8;border-bottom:1px solid #d8cdb8;">
+        <span style="font-size:11px;color:#4a6080;">${poy.items.length} รายการ</span>
+        <span style="font-size:12px;font-weight:700;color:#1C3A5F;">฿${fmt(poy.total)}</span>
+      </div>`;
+    });
+
+    // customer grand total
+    html+=`
+    <div class="poy-footer">
+      <span style="font-weight:700;">${totalItems} รายการรวม</span>
+      <span>ยอดรวม <b style="color:#1C3A5F;">฿${fmt(cu.total)}</b></span>
+    </div>
     </div>`;
   });
+
   html+='<div style="height:16px;"></div>';
   c.innerHTML=html;
 }
