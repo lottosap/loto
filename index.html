@@ -673,17 +673,21 @@ function renderPoyHistory(){
   }
   let html='';
   poyHistory.forEach((poy,pi)=>{
-    const rows = poy.items.map(e=>`
-      <div class="poy-row">
-        <span style="font-family:monospace;font-weight:900;color:#1C3A5F;">${e.number}</span>
-        <span style="font-size:11px;color:#4a6080;">${e.label}</span>
-        <span style="font-weight:700;">฿${fmt(e.amount)}</span>
+    const rows = poy.items.map((e,ei)=>`
+      <div class="poy-row" style="align-items:center;">
+        <span style="font-family:monospace;font-weight:900;color:#1C3A5F;min-width:48px;">${e.number}</span>
+        <span style="font-size:11px;color:#4a6080;flex:1;">${e.label}</span>
+        <span style="font-weight:700;min-width:48px;text-align:right;">฿${fmt(e.amount)}</span>
+        <button onclick="deleteItem('${poy.id}',${ei})" style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:16px;color:#c0392b;margin-left:6px;">🗑️</button>
       </div>`).join('');
     html+=`
     <div class="poy-card">
       <div class="poy-header">
         <span style="color:#fff;font-weight:900;font-size:14px;">โพย #${poyHistory.length-pi} · ${poy.customer}</span>
-        <span style="color:#C8B289;font-size:11px;">${poy.date} ${poy.time}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:#C8B289;font-size:11px;">${poy.date} ${poy.time}</span>
+          <button onclick="deletePoy('${poy.id}')" style="background:#c0392b;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;padding:3px 8px;cursor:pointer;">🗑️ ลบโพย</button>
+        </div>
       </div>
       ${rows}
       <div class="poy-footer">
@@ -767,7 +771,25 @@ function renderAgentTab(){
   c.innerHTML=html;
 }
 
-/* ── INIT ── */
+/* ── DELETE POY / ITEM ── */
+function deletePoy(poyId){
+  if(!confirm('ลบโพยนี้ทั้งหมด?')) return;
+  poyRef.child(poyId.toString()).remove();
+  showToast('ลบโพยแล้ว ✓');
+}
+
+function deleteItem(poyId, itemIndex){
+  const poy = poyHistory.find(p=>p.id==poyId);
+  if(!poy) return;
+  if(poy.items.length===1){ deletePoy(poyId); return; }
+  poy.items.splice(itemIndex,1);
+  poy.total = poy.items.reduce((s,e)=>s+e.amount,0);
+  poy.com   = Math.round(poy.total*COM);
+  poyRef.child(poyId.toString()).set(poy);
+  showToast('ลบรายการแล้ว ✓');
+}
+
+
 renderPage1();
 renderPage2();
 renderPoyHistory();
